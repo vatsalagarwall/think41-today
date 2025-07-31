@@ -56,6 +56,41 @@ app.get('/api/products/:id', (req, res) => {
     });
 });
 
+app.get('/api/departments', (req, res) => {
+    connection.query('SELECT * FROM departments', (err, results) => {
+        if (err) return res.status(500).json({ error: 'Database error' });
+        res.status(200).json(results);
+    });
+});
+
+app.get('/api/departments/:id', (req, res) => {
+    const id = req.params.id;
+
+    connection.query('SELECT * FROM departments WHERE id = ?', [id], (err, results) => {
+        if (err) return res.status(500).json({ error: 'Database error' });
+        if (results.length === 0) return res.status(404).json({ message: 'Department not found' });
+        res.status(200).json(results[0]);
+    });
+});
+
+app.get('/api/departments/:id/products', (req, res) => {
+    const id = req.params.id;
+
+    const sql = `
+    SELECT 
+      p.id, p.name, p.brand, p.category, p.cost, p.retail_price,
+      d.name AS department, p.sku, p.distribution_center_id
+    FROM products p
+    JOIN departments d ON p.department_id = d.id
+    WHERE d.id = ?
+  `;
+
+    connection.query(sql, [id], (err, results) => {
+        if (err) return res.status(500).json({ error: 'Database error' });
+        res.status(200).json(results);
+    });
+});
+
 // Start server
 const PORT = 3000;
 app.listen(PORT, () => {
