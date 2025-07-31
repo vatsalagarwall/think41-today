@@ -15,9 +15,16 @@ const connection = mysql.createConnection({
 
 // 1. GET all products
 app.get('/api/products', (req, res) => {
-    const limit = parseInt(req.query.limit) || 100;
-
-    connection.query('SELECT * FROM products LIMIT ?', [limit], (err, results) => {
+    // const limit = parseInt(req.query.limit) || 100;
+    const sql = `
+  SELECT 
+    p.id, p.name, p.brand, p.category, p.cost, p.retail_price,
+    d.name AS department, p.sku, p.distribution_center_id
+  FROM products p
+  JOIN departments d ON p.department_id = d.id
+  LIMIT ?
+`;
+    connection.query(sql, (err, results) => {
         if (err) return res.status(500).json({ error: 'Database error' });
         res.status(200).json(results);
     });
@@ -26,8 +33,15 @@ app.get('/api/products', (req, res) => {
 // 2. GET product by ID
 app.get('/api/products/:id', (req, res) => {
     const id = req.params.id;
-
-    connection.query('SELECT * FROM products WHERE id = ?', [id], (err, results) => {
+    const sql = `
+  SELECT 
+    p.id, p.name, p.brand, p.category, p.cost, p.retail_price,
+    d.name AS department, p.sku, p.distribution_center_id
+  FROM products p
+  JOIN departments d ON p.department_id = d.id
+  WHERE p.id = ?
+`;
+    connection.query(sql, [id], (err, results) => {
         if (err) return res.status(500).json({ error: 'Database error' });
 
         if (results.length === 0) {
